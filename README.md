@@ -9,3 +9,6 @@ A synchronous module loader based on the AMD pattern. This means you can load st
 		window.demo-module-function('Loaded');
 	</script>
 
+# Install
+
+	bower install require-sync
