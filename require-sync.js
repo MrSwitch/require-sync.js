@@ -28,17 +28,19 @@
 	//
 	// Optional overrides
 	//
-	var options = {};
+	var options = {
+		baseUrl : ''
+	};
 
 	//
 	// GetScript
 	//
 	function getScript(script){
 		var path = script;
-		if( options && options.paths && script in options.paths ){
+		if( options.paths && script in options.paths ){
 			path = options.paths[script];
 		}
-		document.write('<script src="'+path+'.js" '+ REQUIRE_MODULE +'="'+script+'"></script>');
+		document.write('<script src="'+ options.baseUrl + path+'.js" '+ REQUIRE_MODULE +'="'+script+'"></script>');
 	}
 
 	//
@@ -126,7 +128,7 @@
 			}
 
 			// Resolved
-			module.resolved = module.callback.apply(null, _apply);
+			module.resolved = module.callback ? module.callback.apply(null, _apply) : undefined;
 
 			// Rerun the loop
 			resolve();
