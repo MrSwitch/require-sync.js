@@ -1,5 +1,6 @@
 (function(window){
 
+
 	//
 	// Args
 	//
@@ -21,6 +22,18 @@
 	}
 
 	//
+	// Each
+	//
+	function each(arr,handler){
+		if(!arr){
+			return;
+		}
+		for(var i=0;i<arr.length;i++){
+			handler(arr[i],i);
+		}
+	}
+
+	//
 	// Require modules
 	// 
 	var REQUIRE_MODULE = 'data-requiremodule';
@@ -36,6 +49,9 @@
 	// GetScript
 	//
 	function getScript(script){
+		if(!script){
+			return;
+		}
 		var path = script;
 		if( options.paths && script in options.paths ){
 			path = options.paths[script];
@@ -51,7 +67,8 @@
 		return scripts[scripts.length-1];
 	}
 
-	var modules = {};
+	var modules = {},
+		queue = [];
 
 	//
 	// Require
@@ -65,9 +82,16 @@
 		name = node.getAttribute(REQUIRE_MODULE);
 
 		// Load its dependencies
-		p.deps.forEach(function(item){
+		each(p.deps, function(item){
 			if( !(item in modules) ){
-				getScript(item);
+
+				// Create a placeholder for this module
+				modules[item] = undefined;
+
+				// Add the dependent to the queue
+				// in many browsers we could just call getScript,
+				// however IE9&8 doesn't let us write multiple script tags without losing ability to find the currentScript being executed
+				queue.push(item);
 			}
 		});
 
@@ -77,6 +101,8 @@
 		// Try ro resolve pending ops
 		resolve();
 
+		// Get the next Script in Queue
+		getScript(queue.pop());
 	};
 
 
@@ -98,7 +124,8 @@
 			var module = modules[x];
 
 			// Has this modules already been resolved?
-			if( "resolved" in module ){
+			// Or even still loading
+			if( !module || "resolved" in module ){
 				// Do nothing
 				continue;
 			}
@@ -138,15 +165,21 @@
 		}
 	}
 
-
 	//
 	// Has this script been loaded with a Data Attribute?
 	//
 	var script = scriptTag().getAttribute('data-main');
 	if(script){
-		getScript(script);
-	}
+		var baseReg = /^.*\//;
 
+		// Define the baseUrl based upon the path
+		if( script.match( baseReg ) ){
+			options.baseUrl = script.match(baseReg)[0];
+		}
+
+		// Initiate
+		getScript(script.replace(baseReg, ''));
+	}
 
 	//
 	// Config
