@@ -34,6 +34,16 @@
 	}
 
 	//
+	// Real path
+	//
+	function realpath(path, referer){
+		if(path.match(/^\.(\.)?\//)){
+			path = ( referer.replace(/[^\/]+$/,'') + path ).replace(/\/[^\/]+\/\.\.\//,'/').replace(/\/\.\//,'/');
+		}
+		return path;
+	}
+
+	//
 	// Require modules
 	// 
 	var REQUIRE_MODULE = 'data-requiremodule';
@@ -82,7 +92,12 @@
 		name = node.getAttribute(REQUIRE_MODULE);
 
 		// Load its dependencies
-		each(p.deps, function(item){
+		each(p.deps, function(item, i){
+
+			// Make item name relative
+			p.deps[i] = item = realpath( item, name );
+
+			// 
 			if( !(item in modules) ){
 
 				// Create a placeholder for this module
