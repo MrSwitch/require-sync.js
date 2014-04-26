@@ -22,6 +22,15 @@
 	}
 
 	//
+	// Extend
+	//
+	function extend(a,b){
+		for(var x in b){
+			a[x] = b[x];
+		}
+	}
+
+	//
 	// Each
 	//
 	function each(arr,handler){
@@ -37,8 +46,12 @@
 	// Real path
 	//
 	function realpath(path, referer){
-		if(path.match(/^\.(\.)?\//)){
-			path = ( referer.replace(/[^\/]+$/,'') + path ).replace(/\/[^\/]+\/\.\.\//,'/').replace(/\/\.\//,'/');
+		if(referer){
+			path = ( referer.replace(/[^\/]+$/,'') + path ).replace(/(^|\/)\.\//,'$1');
+			var regParent = /(^|\/)[a-z0-9][^\/]*\/\.\.\//ig;
+			while( regParent.test(path) ){
+				path = path.replace( regParent, '$1');
+			}
 		}
 		return path;
 	}
@@ -117,7 +130,7 @@
 		resolve();
 
 		// Get the next Script in Queue
-		getScript(queue.pop());
+		getScript(queue.shift());
 	};
 
 
@@ -200,7 +213,7 @@
 	// Config
 	//
 	window.require.config = function(_options){
-		options = _options;
+		extend(options, _options);
 	};
 
 })(this);
