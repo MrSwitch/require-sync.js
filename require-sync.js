@@ -79,7 +79,7 @@
 		if( options.paths && script in options.paths ){
 			path = options.paths[script];
 		}
-		document.write('<script src="'+ options.baseUrl + path+'.js" '+ REQUIRE_MODULE +'="'+script+'"></script>');
+		document.write('<script src="'+ options.baseUrl + path+'.js" '+ REQUIRE_MODULE +'="'+script+'"></script><script '+ REQUIRE_MODULE +'="'+script+'">define("'+script+'");</script>');
 	}
 
 	//
@@ -91,7 +91,8 @@
 	}
 
 	var modules = {},
-		queue = [];
+		queue = [], 
+		unknown_counter = 0;
 
 	//
 	// Require
@@ -124,13 +125,22 @@
 		});
 
 		// Define this module
-		modules[name || 'main'] = p;
+		if( !name ){
+			name = 'main' + unknown_counter++;
+		}
 
-		// Try ro resolve pending ops
-		resolve();
+		// be careful not to call the shim if the item was defined
 
-		// Get the next Script in Queue
-		getScript(queue.shift());
+		if( modules[name] === undefined ){
+			// Assign
+			modules[name] = p;
+
+			// Try ro resolve pending ops
+			resolve();
+
+			// Get the next Script in Queue
+			getScript(queue.shift());
+		}
 	};
 
 
