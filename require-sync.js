@@ -53,6 +53,11 @@
 				path = path.replace( regParent, '$1');
 			}
 		}
+
+		if( !path.match(/\.(js|css|json)$/) ){
+			path += '.js';
+		}
+
 		return path;
 	}
 
@@ -75,11 +80,25 @@
 		if(!script){
 			return;
 		}
+
 		var path = script;
-		if( options.paths && script in options.paths ){
-			path = options.paths[script];
+		if( options.paths ){
+			path = options.paths[path] || options.paths[script.replace(/.js$/,'')] || script;
 		}
-		document.write('<script src="'+ options.baseUrl + path+'.js" '+ REQUIRE_MODULE +'="'+script+'"></script><script '+ REQUIRE_MODULE +'="'+script+'">define("'+script+'");</script>');
+
+		// Is this a relative or absolute URL
+		var src = path;
+		if( !src.match(/^(https?:)?\/\//) ){
+			src = options.baseUrl + src;
+		}
+
+
+		if( script.match(/\.js$/) ){
+			document.write('<script src="'+ src +'" '+ REQUIRE_MODULE +'="'+script+'"></script><script '+ REQUIRE_MODULE +'="'+script+'">define("'+script+'");</script>');
+		}
+		else if( script.match(/\.css$/) ){
+			document.write('<link rel="stylesheet" href="'+ src +'" '+ REQUIRE_MODULE +'="'+script+'"/><script '+ REQUIRE_MODULE +'="'+script+'">define("'+script+'");</script>');
+		}
 	}
 
 	//
@@ -91,7 +110,7 @@
 	}
 
 	var modules = {},
-		queue = [], 
+		queue = [],
 		unknown_counter = 0;
 
 	//
@@ -130,7 +149,6 @@
 		}
 
 		// be careful not to call the shim if the item was defined
-
 		if( modules[name] === undefined ){
 			// Assign
 			modules[name] = p;
@@ -169,7 +187,7 @@
 			}
 
 			// Is it ready to be resolved?
-			var dependencies = module.deps,
+			var dependencies = module.deps || [],
 				dependency,
 				_apply = [],
 				resolved = true;
@@ -216,7 +234,7 @@
 		}
 
 		// Initiate
-		getScript(script.replace(baseReg, ''));
+		getScript(realpath(script.replace(baseReg, '')));
 	}
 
 	//
