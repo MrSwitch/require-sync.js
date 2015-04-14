@@ -11,6 +11,4 @@ A synchronous module loader based on the AMD pattern. This means you can load st
 
 ## Install
 
-```bash
-bower install require-sync
-```
+	bower install require-sync
